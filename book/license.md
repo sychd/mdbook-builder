@@ -14,4 +14,6 @@
 [{{ cover-credit.title }}]({{ cover-credit.artwork-url }}) {{ i18n.cover_artwork_credit }}
 [{{ cover-credit.artist }}]({{ cover-credit.artist-url }})
 
+_{{ i18n.cover_artwork_modification }}_
+
 ::::

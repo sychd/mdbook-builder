@@ -39,6 +39,7 @@ REQUIRED_TRANSLATIONS = {
     "license_permissions",
     "cover_artwork_title",
     "cover_artwork_credit",
+    "cover_artwork_modification",
 }
 
 
