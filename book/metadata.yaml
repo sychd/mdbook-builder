@@ -1,0 +1,45 @@
+---
+title: "Book Title"
+subtitle: "Book Subtitle"
+author: "AUTHOR_NAME"
+description: "Book description paragraph"
+lang: en
+date: "2026-07-29"
+copyright-year: 2026
+
+# Generate a new UUID for each new book/edition; keep it for minor revisions.
+identifier:
+  - scheme: URN
+    text: "urn:uuid:4fcb3e61-a4d8-4a04-8056-64c311029f61"
+publisher: "AUTHOR_NAME"
+subject:
+  - "PRIMARY_TOPIC_OR_GENRE"
+  - "SECONDARY_TOPIC"
+
+toc-depth: 2
+number-sections: false
+cover-image: images/cover.png
+cover-image-alt: "Children in the Sea by Joaquín Sorolla y Bastida"
+rights: "© 2026 AUTHOR_NAME"
+license_name: "Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International"
+license_short: "CC BY-NC-SA 4.0"
+license_url: "https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en"
+
+cover-credit:
+  title: "Children in the Sea"
+  artwork-url: "https://joaquin-sorolla-y-bastida.org/Children-In-The-Sea-1909.html"
+  artist: "Joaquín Sorolla y Bastida"
+  artist-url: "https://en.wikipedia.org/wiki/Joaqu%C3%ADn_Sorolla"
+
+accessModes:
+  - textual
+  - visual
+accessibilityFeatures:
+  - alternativeText
+  - readingOrder
+  - structuralNavigation
+  - tableOfContents
+accessibilityHazards:
+  - none
+accessibilitySummary: "The book includes structural navigation and text alternatives for meaningful images."
+---

@@ -1,0 +1,302 @@
+:root {
+  --paper: #fefefe;
+  --ink: #2f2f2f;
+  --muted: #666;
+  --rule: #2f2f2f;
+  --body-font:
+    Vollkorn, "Palatino Linotype", "Book Antiqua", Palatino, Georgia,
+    "Times New Roman", serif;
+  --code-font: Consolas, Menlo, Monaco, monospace;
+}
+
+html {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--body-font);
+  font-size: 100%;
+  line-height: 1.53;
+  hyphens: auto;
+}
+
+body {
+  margin: 0 auto;
+  max-width: 42rem;
+  padding: 5%;
+  text-align: justify;
+}
+
+h1,
+h2,
+h3 {
+  break-after: avoid;
+  hyphens: none;
+  line-height: 1.15;
+  text-align: center;
+}
+
+h1 {
+  font-size: 2.8rem;
+  font-weight: 400;
+  margin: 0 0 2.5rem;
+}
+
+h2 {
+  font-size: 1.55rem;
+  font-weight: 400;
+  margin: 2.8rem 0 1rem;
+}
+
+h3 {
+  font-size: 1.15rem;
+  font-style: italic;
+  font-weight: 400;
+  margin: 2.4rem 0 0.8rem;
+}
+
+h2::after {
+  border-bottom: 0.07rem solid var(--rule);
+  content: "";
+  display: block;
+  margin: 0.5rem auto 0;
+  width: 6.25rem;
+}
+
+section.level1 {
+  break-before: page;
+  page-break-before: always;
+}
+
+p {
+  margin-top: 0;
+  orphans: 2;
+  widows: 2;
+}
+
+a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 0.06em;
+  text-underline-offset: 0.14em;
+}
+
+ul {
+  list-style: square;
+  padding-left: 1.25rem;
+}
+
+ol {
+  padding-left: 1.25rem;
+}
+
+hr {
+  border: 0;
+  border-top: 0.07rem solid #ddd;
+  margin: 2rem 0;
+}
+
+code,
+pre {
+  font-family: var(--code-font);
+  font-size: 0.88em;
+}
+
+figure {
+  break-inside: avoid;
+  margin: 2.5rem 0;
+  text-align: center;
+}
+
+figure img {
+  display: block;
+  height: auto;
+  margin: 0 auto;
+  max-height: 70vh;
+  max-width: 100%;
+}
+
+figcaption {
+  color: var(--muted);
+  font-size: 0.72rem;
+  margin-top: 0.65rem;
+}
+
+blockquote {
+  border-left: 0.07rem solid #bbb;
+  margin: 1.8rem 0 1.8rem 1rem;
+  padding-left: 1rem;
+}
+
+.front-cover {
+  display: none;
+}
+
+#title-block-header,
+#cover > h1 {
+  display: none;
+}
+
+.title-page {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 94vh;
+  padding: 6vh 0 0.25rem;
+  text-align: center;
+}
+
+.title-page__title {
+  font-size: 3.2rem;
+  line-height: 1.05;
+  margin: 0 auto;
+  max-width: 12ch;
+}
+
+.title-page__title::before,
+.title-page__title::after {
+  border-top: 0.07rem solid var(--rule);
+  content: "";
+  display: block;
+  width: 7rem;
+}
+
+.title-page__title::before {
+  margin: 0 auto 1.1rem;
+}
+
+.title-page__title::after {
+  margin: 1.1rem auto 0;
+}
+
+.title-page__title p {
+  margin: 0;
+}
+
+.title-page__subtitle {
+  font-size: 1.45rem;
+  line-height: 1.2;
+  margin-top: 1.25rem;
+  max-width: 18rem;
+}
+
+.title-page__description {
+  color: var(--muted);
+  font-size: 0.82rem;
+  margin-top: 1.25rem;
+  max-width: 24rem;
+}
+
+.title-page__author {
+  font-size: 1.35rem;
+  margin-top: auto;
+  padding-bottom: 0.25rem;
+  text-align: center;
+}
+
+.title-page__author p {
+  margin: 0;
+}
+
+.license-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 94vh;
+}
+
+.license-page h1 {
+  font-size: 1.6rem;
+}
+
+.license-page__copyright p {
+  margin: 0;
+}
+
+.toc-title + ul {
+  list-style: none;
+  margin-top: 3rem;
+  padding: 0;
+}
+
+.toc-title + ul > li {
+  font-size: 1.2rem;
+  margin: 0 0 1.5rem;
+}
+
+.toc-title + ul > li > a {
+  display: block;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.toc-title + ul ul {
+  font-size: 0.78em;
+  list-style: none;
+  margin: 0.55rem 0 0.1rem;
+  padding-left: 1rem;
+}
+
+.toc-title + ul ul li {
+  margin: 0.35rem 0;
+}
+
+.toc-title + ul ul a {
+  text-decoration: none;
+}
+
+@media print {
+  @page {
+    size: A5;
+    margin: 18mm 17mm 20mm;
+  }
+
+  body {
+    max-width: none;
+    padding: 0;
+  }
+
+  .front-cover {
+    break-after: page;
+    display: block;
+    height: 210mm;
+    margin: -18mm -17mm -20mm;
+    width: 148mm;
+  }
+
+  .front-cover figure,
+  .front-cover img {
+    height: 100%;
+    margin: 0;
+    max-height: none;
+    max-width: none;
+    width: 100%;
+  }
+
+  .front-cover img {
+    object-fit: cover;
+  }
+
+  .front-cover figcaption {
+    display: none;
+  }
+
+  .title-page,
+  .license-page {
+    height: 172mm;
+    min-height: 0;
+    position: relative;
+  }
+
+  .title-page {
+    padding: 6mm 0 2mm;
+  }
+
+  .title-page__author,
+  .license-page__copyright {
+    bottom: 2mm;
+    left: 0;
+    margin: 0;
+    padding: 0;
+    position: absolute;
+    right: 0;
+  }
+}

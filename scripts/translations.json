@@ -1,0 +1,18 @@
+{
+  "en": {
+    "contents_title": "Contents",
+    "license_title": "License",
+    "license_intro": "This work is licensed under the",
+    "license_permissions": "You are welcome to read, share, translate, and adapt this book for non-commercial purposes. If you would like to use it commercially, please contact the author.",
+    "cover_artwork_title": "Cover artwork",
+    "cover_artwork_credit": "by"
+  },
+  "ru": {
+    "contents_title": "Содержание",
+    "license_title": "Лицензия",
+    "license_intro": "Это произведение распространяется на условиях лицензии",
+    "license_permissions": "Вы можете читать, распространять, переводить и адаптировать эту книгу в некоммерческих целях. Для коммерческого использования свяжитесь с автором.",
+    "cover_artwork_title": "Изображение на обложке",
+    "cover_artwork_credit": "—"
+  }
+}
