@@ -6,7 +6,16 @@
     "license_permissions": "You are welcome to read, share, translate, and adapt this book for non-commercial purposes. If you would like to use it commercially, please contact the author.",
     "cover_artwork_title": "Cover artwork",
     "cover_artwork_credit": "by",
-    "cover_artwork_modification": "AI-assisted adaptation to fit the cover format."
+    "cover_artwork_modification": "AI-assisted adaptation to fit the cover format.",
+    "book": {
+      "title": "Book Title",
+      "subtitle": "Book Subtitle",
+      "author": "Author Name",
+      "description": "A brief description of the book.",
+      "language": "English",
+      "date": "2026-08-02",
+      "copyright_year": "2026"
+    }
   },
   "ru": {
     "contents_title": "Содержание",
@@ -15,6 +24,51 @@
     "license_permissions": "Вы можете читать, распространять, переводить и адаптировать эту книгу в некоммерческих целях. Для коммерческого использования свяжитесь с автором.",
     "cover_artwork_title": "Изображение на обложке",
     "cover_artwork_credit": "—",
-    "cover_artwork_modification": "Изображение адаптировано с помощью ИИ под формат обложки."
+    "cover_artwork_modification": "Изображение адаптировано с помощью ИИ под формат обложки.",
+    "book": {
+      "title": "Название книги",
+      "subtitle": "Подзаголовок книги",
+      "author": "Имя автора",
+      "description": "Краткое описание книги.",
+      "language": "Русский",
+      "date": "02.08.2026",
+      "copyright_year": "2026"
+    }
+  },
+  "de": {
+    "contents_title": "Inhaltsverzeichnis",
+    "license_title": "Lizenz",
+    "license_intro": "Dieses Werk ist lizenziert unter der",
+    "license_permissions": "Sie können dieses Buch für nicht-kommerzielle Zwecke lesen, teilen, übersetzen und anpassen. Für eine kommerzielle Nutzung kontaktieren Sie bitte den Autor.",
+    "cover_artwork_title": "Cover-Gestaltung",
+    "cover_artwork_credit": "von",
+    "cover_artwork_modification": "KI-gestützte Anpassung an das Cover-Format.",
+    "book": {
+      "title": "Buchtitel",
+      "subtitle": "Untertitel des Buches",
+      "author": "Name des Autors",
+      "description": "Eine kurze Beschreibung des Buches.",
+      "language": "Deutsch",
+      "date": "02.08.2026",
+      "copyright_year": "2026"
+    }
+  },
+  "uk": {
+    "contents_title": "Зміст",
+    "license_title": "Ліцензія",
+    "license_intro": "Цей твір розповсюджується на умовах ліцензії",
+    "license_permissions": "Ви можете читати, поширювати, перекладати та адаптувати цю книгу в некомерційних цілях. Для комерційного використання зв'яжіться з автором.",
+    "cover_artwork_title": "Зображення на обкладинці",
+    "cover_artwork_credit": "—",
+    "cover_artwork_modification": "Зображення адаптоване за допомогою ШІ під формат обкладинки.",
+    "book": {
+      "title": "Назва книги",
+      "subtitle": "Підзаголовок книги",
+      "author": "Ім'я автора",
+      "description": "Короткий опис книги.",
+      "language": "Українська",
+      "date": "02.08.2026",
+      "copyright_year": "2026"
+    }
   }
 }

@@ -136,6 +136,67 @@ def render_template(path: Path, metadata: dict[str, Any]) -> str:
     ).strip()
 
 
+def resolve_placeholder_value(
+    value: Any,
+    context: dict[str, Any],
+    translations: dict[str, Any],
+) -> Any:
+    if isinstance(value, list):
+        return [resolve_placeholder_value(item, context, translations) for item in value]
+    if isinstance(value, dict):
+        return {
+            key: resolve_placeholder_value(item, context, translations)
+            for key, item in value.items()
+        }
+    if not isinstance(value, str):
+        return value
+
+    def replace(match: re.Match[str]) -> str:
+        key = match.group("key")
+        if key.startswith("i18n."):
+            scope = translations
+            parts = key.split(".")[1:]
+        else:
+            scope = context
+            parts = key.split(".")
+        current: Any = scope
+        for part in parts:
+            if isinstance(current, dict) and part in current:
+                current = current[part]
+            else:
+                raise BuildError(f"Missing metadata for template variable: {key}")
+        return str(current)
+
+    if TEMPLATE_PATTERN.search(value):
+        return TEMPLATE_PATTERN.sub(replace, value)
+    return value
+
+
+def resolve_metadata_placeholders(
+    metadata: dict[str, Any],
+    translations: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    translations = translations or {}
+    resolved: dict[str, Any] = {}
+    for key, value in metadata.items():
+        resolved[key] = resolve_placeholder_value(
+            value,
+            {**metadata, **resolved},
+            translations,
+        )
+    return resolved
+
+
+def resolve_book_dir(base_dir: Path, language: str) -> Path:
+    base_dir = Path(base_dir).expanduser()
+    if not base_dir.is_absolute():
+        base_dir = (Path.cwd() / base_dir).resolve(strict=False)
+    candidate = base_dir / "assets" / language
+    if candidate.is_dir() and (candidate / "metadata.yaml").is_file():
+        return candidate
+    return base_dir
+
+
 def read_translations(language: str) -> dict[str, str]:
     try:
         catalog = json.loads(TRANSLATIONS_FILE.read_text(encoding="utf-8"))
@@ -340,7 +401,7 @@ def build(
     generate_pdf: bool,
     target_language: str,
 ) -> None:
-    book_dir = book_dir.expanduser().resolve()
+    book_dir = resolve_book_dir(book_dir, target_language)
     metadata_file, cover_file, license_file, css_file = validate_sources(book_dir)
     if generate_pdf:
         require_pdf_engine()
@@ -365,6 +426,7 @@ def build(
         )
     metadata["lang"] = target_language
     metadata["i18n"] = translations
+    metadata = resolve_metadata_placeholders(metadata, translations)
 
     cover_image = book_dir / str(metadata["cover-image"])
     if not cover_image.is_file():

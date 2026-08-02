@@ -2,6 +2,8 @@ from pathlib import Path
 import re
 import sys
 
+DEFAULT_SOURCE_FILE = Path(__file__).resolve().parents[1] / "book" / "assets" / "n" / "raw.md"
+
 
 def split_markdown(path: Path, output_dir: Path, title_map: dict[str, str], cover_text: str | None = None):
     text = path.read_text(encoding='utf-8')
@@ -46,10 +48,15 @@ def split_markdown(path: Path, output_dir: Path, title_map: dict[str, str], cove
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
-        print('Usage: python split_book.py <source_file> [output_dir]')
-        sys.exit(1)
+        source = DEFAULT_SOURCE_FILE.resolve()
+    else:
+        source = Path(sys.argv[1]).resolve()
 
-    source = Path(sys.argv[1]).resolve()
+    if len(sys.argv) < 2:
+        print(f'Usage: python split_book.py <source_file> [output_dir] (default: {source})')
+    else:
+        print('Usage: python split_book.py <source_file> [output_dir]')
+
     output_dir = Path(sys.argv[2]).resolve() if len(sys.argv) > 2 else source.parent
 
     title_map = {
