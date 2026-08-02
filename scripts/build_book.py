@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import unicodedata
 import zipfile
 from pathlib import Path, PurePosixPath
 from typing import Any
@@ -17,7 +18,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 # Settings
 BOOK_DIR = PROJECT_ROOT / "book"
-TARGET_LANGUAGE = "en"  # "en" (English) or "ru" (Russian)
+TARGET_LANGUAGE = "en"  # "en", "ru", "uk", "de"
 BUILD_MARKDOWN = True
 BUILD_PDF = True
 
@@ -45,6 +46,14 @@ REQUIRED_TRANSLATIONS = {
 
 class BuildError(RuntimeError):
     pass
+
+
+def slugify(value: str) -> str:
+    """Генерирует безопасное имя файла/папки с поддержкой любой письменности."""
+    value = unicodedata.normalize("NFC", value)
+    value = re.sub(r"[^\w\s.-]", "", value, flags=re.UNICODE)
+    value = re.sub(r"[_\s]+", "-", value).strip("-")
+    return value or "book"
 
 
 def run(command: list[str], cwd: Path) -> str:
@@ -191,13 +200,37 @@ def resolve_book_dir(base_dir: Path, language: str) -> Path:
     base_dir = Path(base_dir).expanduser()
     if not base_dir.is_absolute():
         base_dir = (Path.cwd() / base_dir).resolve(strict=False)
-    candidate = base_dir / "assets" / language
-    if candidate.is_dir() and (candidate / "metadata.yaml").is_file():
-        return candidate
     return base_dir
 
 
-def read_translations(language: str) -> dict[str, str]:
+def resolve_content_dir(base_dir: Path, language: str) -> Path:
+    content_dir = base_dir / "assets" / language
+    if content_dir.is_dir():
+        return content_dir
+    return base_dir
+
+
+def load_local_translations(book_dir: Path, language: str) -> dict[str, Any] | None:
+    candidates = [
+        book_dir / "translations.json",
+        book_dir / "assets" / language / "translations.json",
+        book_dir.parent / "translations.json",
+    ]
+    for candidate in candidates:
+        if not candidate.is_file():
+            continue
+        try:
+            data = json.loads(candidate.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as error:
+            raise BuildError(f"Invalid local translations file: {candidate}: {error}") from error
+        if not isinstance(data, dict):
+            raise BuildError(f"Local translations must be a JSON object: {candidate}")
+        if language in data and isinstance(data[language], dict):
+            return data[language]
+    return None
+
+
+def read_translations(language: str, book_dir: Path | None = None) -> dict[str, Any]:
     try:
         catalog = json.loads(TRANSLATIONS_FILE.read_text(encoding="utf-8"))
     except FileNotFoundError as error:
@@ -220,6 +253,18 @@ def read_translations(language: str) -> dict[str, str]:
             f"Available languages: {supported}"
         )
 
+    if book_dir is not None:
+        local_translations = load_local_translations(book_dir, language)
+        if local_translations is not None:
+            merged = dict(translations)
+            merged.update(local_translations)
+            if "book" in local_translations and isinstance(local_translations["book"], dict):
+                merged["book"] = {
+                    **translations.get("book", {}),
+                    **local_translations["book"],
+                }
+            translations = merged
+
     invalid = sorted(
         key
         for key in REQUIRED_TRANSLATIONS
@@ -233,15 +278,17 @@ def read_translations(language: str) -> dict[str, str]:
     return translations
 
 
-def localized_metadata_source(metadata_file: Path, language: str) -> str:
-    source = metadata_file.read_text(encoding="utf-8").strip()
-    if LANG_METADATA_PATTERN.search(source) is None:
-        raise BuildError("Missing required metadata: lang")
-    return LANG_METADATA_PATTERN.sub(
-        f"lang: {language}",
-        source,
-        count=1,
-    )
+def localized_metadata_source(metadata: dict[str, Any]) -> str:
+    """Генерирует YAML-блок метаданных для Pandoc из итогового словаря метаданных."""
+    lines = ["---"]
+    for key, val in metadata.items():
+        if key == "i18n":
+            continue
+        if isinstance(val, (dict, list)):
+            continue
+        lines.append(f"{key}: {json.dumps(val, ensure_ascii=False)}")
+    lines.append("---")
+    return "\n".join(lines)
 
 
 def output_image_paths(markdown: str) -> str:
@@ -312,7 +359,7 @@ def make_toc(
 def validate_epub(
     epub_file: Path,
     cover_image: Path,
-    translations: dict[str, str],
+    translations: dict[str, Any],
 ) -> None:
     try:
         with zipfile.ZipFile(epub_file) as archive:
@@ -369,14 +416,22 @@ def validate_epub(
         raise BuildError(f"Invalid EPUB archive: {error}") from error
 
 
-def validate_sources(book_dir: Path) -> tuple[Path, Path, Path, Path]:
+def validate_sources(base_dir: Path, content_dir: Path) -> tuple[Path, Path, Path, Path]:
     if shutil.which("pandoc") is None:
         raise BuildError("Pandoc is not installed")
 
-    metadata = book_dir / "metadata.yaml"
-    cover = book_dir / "cover.md"
-    license_file = book_dir / "license.md"
-    css = book_dir / "styles.css"
+    metadata = base_dir / "metadata.yaml"
+    if not metadata.is_file():
+        metadata = content_dir / "metadata.yaml"
+    cover = content_dir / "cover.md"
+    if not cover.is_file():
+        cover = base_dir / "cover.md"
+    license_file = base_dir / "license.md"
+    if not license_file.is_file():
+        license_file = content_dir / "license.md"
+    css = base_dir / "styles.css"
+    if not css.is_file():
+        css = content_dir / "styles.css"
     missing = [
         str(path)
         for path in (metadata, cover, license_file, css)
@@ -402,12 +457,18 @@ def build(
     target_language: str,
 ) -> None:
     book_dir = resolve_book_dir(book_dir, target_language)
-    metadata_file, cover_file, license_file, css_file = validate_sources(book_dir)
+    content_dir = resolve_content_dir(book_dir, target_language)
+    metadata_file, cover_file, license_file, css_file = validate_sources(book_dir, content_dir)
     if generate_pdf:
         require_pdf_engine()
 
     metadata = read_metadata(metadata_file, book_dir)
-    translations = read_translations(target_language)
+    translations = read_translations(target_language, book_dir)
+
+    book_translations = translations.get("book", {})
+    for key in ("title", "subtitle", "author", "description"):
+        if book_translations.get(key):
+            metadata[key] = book_translations[key]
 
     required_metadata = (
         "title",
@@ -428,16 +489,31 @@ def build(
     metadata["i18n"] = translations
     metadata = resolve_metadata_placeholders(metadata, translations)
 
-    cover_image = book_dir / str(metadata["cover-image"])
-    if not cover_image.is_file():
-        raise BuildError(f"Cover image does not exist: {cover_image}")
+    cover_image_candidate = Path(str(metadata["cover-image"]))
+    cover_image = None
+    for base in (content_dir, book_dir):
+        candidate = base / cover_image_candidate
+        if candidate.is_file():
+            cover_image = candidate
+            break
+    if cover_image is None:
+        raise BuildError(f"Cover image does not exist: {cover_image_candidate}")
 
-    chapters = find_chapters(book_dir)
-    output_dir = book_dir / "result"
-    output_dir.mkdir(exist_ok=True)
-    markdown_file = output_dir / "book.md"
+    chapters = find_chapters(content_dir)
+
+    # Имя книги из локализованных метаданных
+    book_title = str(metadata["title"])
+    slug = slugify(book_title)
+
+    output_dir = PROJECT_ROOT / "book" / "result" / target_language / slug
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    markdown_file = output_dir / f"{slug}.md"
+    epub_file = output_dir / f"{slug}.epub"
+    pdf_file = output_dir / f"{slug}.pdf"
+
     working_markdown = (
-        markdown_file if generate_markdown else output_dir / ".book.md"
+        markdown_file if generate_markdown else output_dir / f".{slug}.md"
     )
     if not generate_markdown:
         markdown_file.unlink(missing_ok=True)
@@ -450,13 +526,13 @@ def build(
     )
     title_marker = "# Cover {.unlisted}"
     sections = [
-        localized_metadata_source(metadata_file, target_language),
+        localized_metadata_source(metadata),
         title_marker,
         front_cover,
         render_template(cover_file, metadata),
         make_toc(
             chapters,
-            book_dir,
+            content_dir,
             int(metadata.get("toc-depth", 2)),
             translations["contents_title"],
         ),
@@ -468,13 +544,14 @@ def build(
     ]
     combined_markdown = "\n\n".join(sections).rstrip() + "\n"
     working_markdown.write_text(combined_markdown, encoding="utf-8")
-    epub_source = output_dir / ".book.epub.md"
+
+    epub_source = output_dir / f".{slug}.epub.md"
     epub_source.write_text(
         FRONT_COVER_PATTERN.sub("\n", combined_markdown, count=1),
         encoding="utf-8",
     )
 
-    resource_path = os.pathsep.join((str(output_dir), str(book_dir)))
+    resource_path = os.pathsep.join((str(output_dir), str(content_dir), str(book_dir)))
     common = [
         "pandoc",
         str(working_markdown),
@@ -486,8 +563,7 @@ def build(
         f"--resource-path={resource_path}",
     ]
 
-    epub_file = output_dir / "book.epub"
-    temporary_epub = output_dir / ".book.epub.tmp"
+    temporary_epub = output_dir / f".{slug}.epub.tmp"
     epub_command = common.copy()
     epub_command[1] = str(epub_source)
     epub_command.extend(
@@ -501,9 +577,8 @@ def build(
             str(temporary_epub),
         ]
     )
-    pdf_file = output_dir / "book.pdf"
     try:
-        run(epub_command, cwd=book_dir)
+        run(epub_command, cwd=content_dir)
         validate_epub(temporary_epub, cover_image, translations)
         temporary_epub.replace(epub_file)
 
@@ -516,7 +591,7 @@ def build(
                 "--output",
                 str(pdf_file),
             ]
-            run(pdf_command, cwd=book_dir)
+            run(pdf_command, cwd=content_dir)
         else:
             pdf_file.unlink(missing_ok=True)
     finally:
@@ -525,12 +600,11 @@ def build(
         if not generate_markdown:
             working_markdown.unlink(missing_ok=True)
 
-    print(f"Language: {target_language}")
-    print(
-        f"Markdown: {markdown_file if generate_markdown else 'skipped'}"
-    )
-    print(f"EPUB:     {epub_file}")
-    print(f"PDF:      {pdf_file if generate_pdf else 'skipped'}")
+    print(f"Language:  {target_language}")
+    print(f"Directory: {output_dir}")
+    print(f"Markdown:  {markdown_file if generate_markdown else 'skipped'}")
+    print(f"EPUB:      {epub_file}")
+    print(f"PDF:       {pdf_file if generate_pdf else 'skipped'}")
 
 
 def main() -> int:
