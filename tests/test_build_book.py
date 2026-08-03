@@ -5,7 +5,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -78,6 +78,74 @@ class BuildBookTests(unittest.TestCase):
                 ),
             ):
                 build_book.read_translations("en", book_dir)
+
+    def test_read_subjects_supports_commas_lines_and_duplicates(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            book_dir = Path(tmpdir) / "book"
+            assets_dir = book_dir / "assets"
+            assets_dir.mkdir(parents=True)
+            (assets_dir / "tags.txt").write_text(
+                "Science, Health & Wellness\nscience\nSelf-Help,  ",
+                encoding="utf-8",
+            )
+
+            subjects = build_book.read_subjects(book_dir)
+
+        self.assertEqual(
+            subjects,
+            ["Science", "Health & Wellness", "Self-Help"],
+        )
+
+    def test_read_subjects_rejects_missing_file(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            book_dir = Path(tmpdir) / "book"
+            (book_dir / "assets").mkdir(parents=True)
+
+            with self.assertRaisesRegex(
+                build_book.BuildError,
+                "tags.txt",
+            ):
+                build_book.read_subjects(book_dir)
+
+    def test_read_subjects_rejects_empty_file(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            book_dir = Path(tmpdir) / "book"
+            assets_dir = book_dir / "assets"
+            assets_dir.mkdir(parents=True)
+            (assets_dir / "tags.txt").write_text(" , \n", encoding="utf-8")
+
+            with self.assertRaisesRegex(build_book.BuildError, "is empty"):
+                build_book.read_subjects(book_dir)
+
+    def test_normalize_target_languages_requires_non_empty_array(self) -> None:
+        with self.assertRaisesRegex(build_book.BuildError, "non-empty array"):
+            build_book.normalize_target_languages([])
+
+        with self.assertRaisesRegex(build_book.BuildError, "not a string"):
+            build_book.normalize_target_languages("en")
+
+    def test_normalize_target_languages_normalizes_and_rejects_duplicates(
+        self,
+    ) -> None:
+        self.assertEqual(
+            build_book.normalize_target_languages([" en ", "DE"]),
+            ["en", "de"],
+        )
+
+        with self.assertRaisesRegex(build_book.BuildError, "Duplicate"):
+            build_book.normalize_target_languages(["en", "EN"])
+
+    def test_build_builds_every_target_language(self) -> None:
+        with patch.object(build_book, "build_language") as build_language:
+            build_book.build(Path("book"), True, False, ["en", "de"])
+
+        self.assertEqual(
+            build_language.call_args_list,
+            [
+                call(Path("book"), True, False, "en"),
+                call(Path("book"), True, False, "de"),
+            ],
+        )
 
     def test_apply_book_metadata_localizes_yaml_fields_and_derives_year(self) -> None:
         metadata = {

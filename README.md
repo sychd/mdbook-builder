@@ -5,6 +5,7 @@ enabled using the settings at the top of `scripts/build_book.py`:
 
 ```python
 BOOK_DIR = PROJECT_ROOT / "book"
+TARGET_LANGUAGES = ["en", "de"]
 BUILD_MARKDOWN = True
 BUILD_PDF = False
 ```
@@ -35,6 +36,14 @@ code to Pandoc's `lang`, derives `copyright-year` from `date`, and overlays
 these fields onto `book/metadata.yaml` before conversion. Shared interface
 translations remain in `scripts/translations.json`.
 
+Book categories/tags live next to the local translations in
+`book/assets/tags.txt`. Separate values with commas or line breaks. The
+builder trims values, removes case-insensitive duplicates, and writes the
+result to Pandoc's `subject` metadata.
+
+`TARGET_LANGUAGES` must be a non-empty list. Every listed language is built in
+order, for example `TARGET_LANGUAGES = ["en", "de", "uk"]`.
+
 Output is written to
 `book/result/<kebab-case-title>-<language>/`. The Markdown, EPUB, and PDF use
 the same `<kebab-case-title>-<language>` basename. The directory also contains
@@ -47,8 +56,8 @@ book title as its image alt text.
   Create a new UUID for a new book or edition; keep the existing UUID for
   minor corrections.
 - `publisher` — the author's name or a self-publishing imprint.
-- `subject` — the book's topics or genres; replace the placeholders with
-  one to three values.
+- `subject` — the book's topics or genres, populated from
+  `book/assets/tags.txt` during the build.
 
 Generate a new UUID without additional dependencies:
 
@@ -61,8 +70,8 @@ and imprint assigned by KDP or registered through an ISBN agency.
 
 ## Before publishing
 
-1. Fill in `book/assets/translations.json` and replace the remaining metadata
-   placeholders.
+1. Fill in `book/assets/translations.json` and `book/assets/tags.txt`, then
+   replace the remaining metadata placeholders.
 2. Build the book: `python3 scripts/build_book.py`.
 3. Validate the EPUB with the official
    [EPUBCheck](https://github.com/w3c/epubcheck/releases):

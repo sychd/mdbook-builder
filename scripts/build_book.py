@@ -9,6 +9,7 @@ import sys
 import tempfile
 import unicodedata
 import zipfile
+from collections.abc import Sequence
 from pathlib import Path, PurePosixPath
 from typing import Any
 from xml.etree import ElementTree
@@ -18,8 +19,8 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 # Settings
 BOOK_DIR = PROJECT_ROOT / "book"
-TARGET_LANGUAGE = "en"  # "en", "ru", "uk", "de"
-BUILD_MARKDOWN = True
+TARGET_LANGUAGES = ["en"]  # Any subset of: "en", "ru", "uk", "de"
+BUILD_MARKDOWN = False
 BUILD_PDF = True
 
 TRANSLATIONS_FILE = Path(__file__).with_name("translations.json")
@@ -50,6 +51,7 @@ BOOK_TRANSLATION_KEYS = {
     "date",
 }
 YEAR_PATTERN = re.compile(r"(?<!\d)(?P<year>\d{4})(?!\d)")
+SUBJECTS_FILE_NAME = "tags.txt"
 
 
 class BuildError(RuntimeError):
@@ -363,6 +365,45 @@ def read_translations(language: str, book_dir: Path | None = None) -> dict[str, 
     return translations
 
 
+def read_subjects(book_dir: Path) -> list[str]:
+    subjects_file = book_dir / "assets" / SUBJECTS_FILE_NAME
+    if not subjects_file.is_file():
+        raise BuildError(f"Missing subjects file: {subjects_file}")
+
+    subjects: list[str] = []
+    seen: set[str] = set()
+    for value in re.split(r"[,\r\n]+", subjects_file.read_text(encoding="utf-8")):
+        subject = value.strip()
+        normalized = subject.casefold()
+        if not subject or normalized in seen:
+            continue
+        seen.add(normalized)
+        subjects.append(subject)
+
+    if not subjects:
+        raise BuildError(f"Subjects file is empty: {subjects_file}")
+    return subjects
+
+
+def normalize_target_languages(target_languages: Sequence[str]) -> list[str]:
+    if isinstance(target_languages, str):
+        raise BuildError("Target languages must be an array, not a string")
+    if not target_languages:
+        raise BuildError("Target languages must be a non-empty array")
+
+    normalized_languages: list[str] = []
+    seen: set[str] = set()
+    for language in target_languages:
+        if not isinstance(language, str) or not language.strip():
+            raise BuildError("Every target language must be a non-empty string")
+        normalized = language.strip().casefold()
+        if normalized in seen:
+            raise BuildError(f"Duplicate target language: {normalized}")
+        seen.add(normalized)
+        normalized_languages.append(normalized)
+    return normalized_languages
+
+
 def copyright_year(date: str) -> str:
     years = YEAR_PATTERN.findall(date)
     if len(years) != 1:
@@ -573,7 +614,7 @@ def require_pdf_engine() -> None:
         )
 
 
-def build(
+def build_language(
     book_dir: Path,
     generate_markdown: bool,
     generate_pdf: bool,
@@ -589,6 +630,7 @@ def build(
         require_pdf_engine()
 
     metadata = read_metadata(metadata_file, book_dir)
+    metadata["subject"] = read_subjects(book_dir)
     translations = read_translations(target_language, book_dir)
     metadata = apply_book_metadata(
         metadata,
@@ -736,9 +778,24 @@ def build(
     print(f"PDF:       {pdf_file if generate_pdf else 'skipped'}")
 
 
+def build(
+    book_dir: Path,
+    generate_markdown: bool,
+    generate_pdf: bool,
+    target_languages: Sequence[str],
+) -> None:
+    for target_language in normalize_target_languages(target_languages):
+        build_language(
+            book_dir,
+            generate_markdown,
+            generate_pdf,
+            target_language,
+        )
+
+
 def main() -> int:
     try:
-        build(BOOK_DIR, BUILD_MARKDOWN, BUILD_PDF, TARGET_LANGUAGE)
+        build(BOOK_DIR, BUILD_MARKDOWN, BUILD_PDF, TARGET_LANGUAGES)
     except (BuildError, OSError, ValueError, json.JSONDecodeError) as error:
         print(f"Build failed: {error}", file=sys.stderr)
         return 1
