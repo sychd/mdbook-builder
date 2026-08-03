@@ -19,7 +19,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 # Settings
 BOOK_DIR = PROJECT_ROOT / "book"
-TARGET_LANGUAGES = ["en"]  # Any subset of: "en", "ru", "uk", "de"
+TARGET_LANGUAGES = ["en", "ru", "de", "uk"]  # Any subset of: "en", "ru", "uk", "de"
 BUILD_MARKDOWN = False
 BUILD_PDF = True
 
