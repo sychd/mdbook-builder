@@ -25,8 +25,21 @@ python3 scripts/build_book.py
 ```
 
 Name chapter files `<number> - <title>.md` and start each one with
-`# Chapter Title`. Edit the metadata in `book/metadata.yaml`. The `cover.md`
-and `license.md` templates support placeholders such as `{{ title }}`.
+`# Chapter Title`. The `cover.md` and `license.md` templates support
+placeholders such as `{{ title }}`.
+
+Book-specific translations live in `book/assets/translations.json`, grouped
+by language. Each language must define `title`, `subtitle`, `author`,
+`description`, `language`, and `date`. The builder maps the selected language
+code to Pandoc's `lang`, derives `copyright-year` from `date`, and overlays
+these fields onto `book/metadata.yaml` before conversion. Shared interface
+translations remain in `scripts/translations.json`.
+
+Output is written to
+`book/result/<kebab-case-title>-<language>/`. The Markdown, EPUB, and PDF use
+the same `<kebab-case-title>-<language>` basename. The directory also contains
+`cover.png`; generated metadata references this file and uses the localized
+book title as its image alt text.
 
 ## Metadata
 
@@ -48,11 +61,12 @@ and imprint assigned by KDP or registered through an ISBN agency.
 
 ## Before publishing
 
-1. Replace the placeholders and set the final publication date.
+1. Fill in `book/assets/translations.json` and replace the remaining metadata
+   placeholders.
 2. Build the book: `python3 scripts/build_book.py`.
 3. Validate the EPUB with the official
    [EPUBCheck](https://github.com/w3c/epubcheck/releases):
 
 ```bash
-epubcheck book/result/book.epub
+epubcheck book/result/example-book-en/example-book-en.epub
 ```
