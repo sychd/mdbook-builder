@@ -695,7 +695,7 @@ def build_language(
         localized_metadata_source(metadata),
         title_marker,
         front_cover_markdown(book_title),
-        render_template(cover_file, metadata),
+        f"::::: {{.title-page}}\n{render_template(cover_file, metadata)}\n:::::",
         make_toc(
             chapters,
             content_dir,

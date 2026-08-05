@@ -247,6 +247,37 @@ blockquote {
   @page {
     size: A5;
     margin: 18mm 17mm 20mm;
+
+    @bottom-right {
+      color: var(--muted);
+      content: counter(page);
+      font-family: var(--body-font);
+      font-size: 0.82rem;
+    }
+  }
+
+  .front-cover {
+    page: cover-page;
+  }
+
+  @page cover-page {
+    @bottom-right {
+      content: none;
+    }
+  }
+
+  .title-page {
+    page: title-page;
+  }
+
+  @page title-page {
+    @bottom-right {
+      content: none;
+    }
+  }
+
+  .toc-title {
+    counter-reset: page 1;
   }
 
   body {
