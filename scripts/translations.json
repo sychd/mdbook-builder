@@ -70,5 +70,23 @@
       "date": "02.08.2026",
       "copyright_year": "2026"
     }
+  },
+  "it": {
+    "contents_title": "Indice",
+    "license_title": "Licenza",
+    "license_intro": "Quest'opera è distribuita sotto la licenza",
+    "license_permissions": "Siete liberi di leggere, condividere, tradurre e adattare questo libro per scopi non commerciali. Per l'uso commerciale, si prega di contattare l'autore.",
+    "cover_artwork_title": "Copertina",
+    "cover_artwork_credit": "di",
+    "cover_artwork_modification": "Adattamento assistito dall'IA per adattarsi al formato della copertina.",
+    "book": {
+      "title": "Titolo del libro",
+      "subtitle": "Sottotitolo del libro",
+      "author": "Nome dell'autore",
+      "description": "Una breve descrizione del libro.",
+      "language": "Italiano",
+      "date": "02.08.2026",
+      "copyright_year": "2026"
+    }
   }
 }
