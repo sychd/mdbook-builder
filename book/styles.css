@@ -1,11 +1,9 @@
 :root {
-  --paper: #fefefe;
-  --ink: #2f2f2f;
-  --muted: #666;
-  --rule: #2f2f2f;
-  --body-font:
-    Vollkorn, "Palatino Linotype", "Book Antiqua", Palatino, Georgia,
-    "Times New Roman", serif;
+  --paper: #0b1f33;
+  --ink: #f2f4f6;
+  --muted: #aeb9c5;
+  --rule: #f2f4f6;
+  --body-font: Roboto, Arial, sans-serif;
   --code-font: Consolas, Menlo, Monaco, monospace;
 }
 
@@ -53,12 +51,9 @@ h3 {
   margin: 2.4rem 0 0.8rem;
 }
 
+/* Removed underline from headlines */
 h2::after {
-  border-bottom: 0.07rem solid var(--rule);
-  content: "";
-  display: block;
-  margin: 0.5rem auto 0;
-  width: 6.25rem;
+  display: none;
 }
 
 section.level1 {
@@ -90,7 +85,7 @@ ol {
 
 hr {
   border: 0;
-  border-top: 0.07rem solid #ddd;
+  border-top: 0.07rem solid #3b5064;
   margin: 2rem 0;
 }
 
@@ -121,7 +116,7 @@ figcaption {
 }
 
 blockquote {
-  border-left: 0.07rem solid #bbb;
+  border-left: 0.07rem solid #607386;
   margin: 1.8rem 0 1.8rem 1rem;
   padding-left: 1rem;
 }
